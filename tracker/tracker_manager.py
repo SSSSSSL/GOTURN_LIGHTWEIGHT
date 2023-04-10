@@ -42,12 +42,12 @@ class tracker_manager:
         if save_tracking:
             movie_number =0
             tracker_type ='GoturnGPU'
-            fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
             FPS = vid.get(cv2.CAP_PROP_FPS)
             output_video_name = 'output_videos/movie_' + str(movie_number) + time.strftime(
-                "_%d%m%Y_%H%M%S") + '_' + tracker_type + '.avi'
+                "_%d%m%Y_%H%M%S") + '_' + tracker_type + '.mp4'
             print(output_video_name)
             outVideo = cv2.VideoWriter(output_video_name, fourcc, int(FPS), (width, height))
 
@@ -74,7 +74,7 @@ class tracker_manager:
             bbox = objTracker.track(frame, objRegressor)
 
             ### Print BBox
-            bbox.print_bb()
+            # bbox.print_bb()
 
             ### Calculate Frames per second (FPS)
             fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
@@ -147,7 +147,6 @@ class tracker_manager:
             #print('BBOX : ', bbox.x1, bbox.y1, bbox.x2, bbox.y2)
             ImageDraw = cv2.rectangle(ImageDraw, (int(bbox.x1), int(bbox.y1)), (int(bbox.x2), int(bbox.y2)), (255, 0, 0), 2)
 
-
             # Display FPS on frame
             cv2.putText(ImageDraw, "FPS : " + str(int(fps)), (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
 
@@ -160,3 +159,42 @@ class tracker_manager:
         print('Total processing time ='+ str(int(Time_proc))+'sec')
         print('Average FPS ='+ str(i / Time_proc))
         vid.release()
+
+
+    def trackVot(self, videos, start_video_num, pause_val):
+        """Track the objects in the video
+        """
+        objRegressor = self.regressor
+        objTracker = self.tracker
+
+        video_keys = list(videos.keys())
+        for i in range(start_video_num, len(videos)):
+            video_frames = videos[video_keys[i]][0]
+            annot_frames = videos[video_keys[i]][1]
+
+            num_frames = min(len(video_frames), len(annot_frames))
+
+            # Get the first frame of this video with the intial ground-truth bounding box
+            frame_0 = video_frames[0]
+            bbox_0 = annot_frames[0]
+            sMatImage = cv2.imread(frame_0)
+            objTracker.init(sMatImage, bbox_0, objRegressor)
+            for i in range(1, num_frames):
+                frame = video_frames[i]
+                sMatImage = cv2.imread(frame)
+                sMatImageDraw = sMatImage.copy()
+                bbox = annot_frames[i]
+                
+                if opencv_version == '2':
+                    cv2.rectangle(sMatImageDraw, (int(bbox.x1), int(bbox.y1)), (int(bbox.x2), int(bbox.y2)), (255, 255, 255), 2)
+                else:
+                    sMatImageDraw = cv2.rectangle(sMatImageDraw, (int(bbox.x1), int(bbox.y1)), (int(bbox.x2), int(bbox.y2)), (255, 255, 255), 2)
+
+                bbox = objTracker.track(sMatImage, objRegressor)
+                if opencv_version == '2':
+                    cv2.rectangle(sMatImageDraw, (int(bbox.x1), int(bbox.y1)), (int(bbox.x2), int(bbox.y2)), (255, 0, 0), 2)
+                else:
+                    sMatImageDraw = cv2.rectangle(sMatImageDraw, (int(bbox.x1), int(bbox.y1)), (int(bbox.x2), int(bbox.y2)), (255, 0, 0), 2)
+
+                cv2.imshow('Results', sMatImageDraw)
+                cv2.waitKey(10)

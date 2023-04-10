@@ -36,8 +36,7 @@ class regressor:
     def reshape_image_inputs(self, num_images):
         """TODO: Docstring for reshape_image_inputs.
         :returns: TODO
-        """
-        
+        """        
         net = self.net
         net.blobs['image'].reshape(num_images, self.channels, self.height, self.width)
         net.blobs['target'].reshape(num_images, self.channels, self.height, self.width)
@@ -113,7 +112,8 @@ class regressor:
             if self.solver_file:
                 self.solver = caffe.SGDSolver(self.solver_file)
                 net = self.solver.net
-                net.copy_from(caffe_model)
+                # net.copy_from(caffe_model)
+                # print('[[ copy from caffe ', caffe_model, ' ]]')
             else:
                 logger.error('solver file required')
                 return

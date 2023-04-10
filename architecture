@@ -1,0 +1,90 @@
+
+
+[regressor]
+
+	[멤버 변수]
+
+	num_inputs
+	logger
+	caffe_model_
+	modified_params_ 	= False
+	mean			= [104, 117, 123]
+	modified_param 		= False
+	solver_file		= None
+	
+	[멤버 함수]
+
+	__init__(self, deploy_proto, caffe_model, logger, gpu_id=0, num_inputs=1, do_train=False, solver_file=None)
+	인자로 받은 값 멤버변수로 저장
+	setupNetwork(deploy_proto, caffe_model, gpu_id, do_train) 호출
+
+	setupNetwork(self, deploy_proto, caffe_model, gpu_id, do_train)
+	caffe에 gpu사용 설정, gpu id 지정
+	학습 시, solver_file(멤버변수)에서 net의 정보를 읽어오고, caffe_model(경로)로부터 .caffemodel 읽어서 네트워크 불러옴. (<- 지금은 주석처리)
+	추론 시, deploy_proto(인자)와 caffe_model(인자)로부터 읽어서 네트워크 불러옴.
+	이후 prototxt의 input: "image"에 맞는 dim을 num_inputs(멤버변수), channels(멤버변수), height(멤버변수), width(멤버변수)에 저장함. (1, 3, 227, 227)
+
+	preprocess(self, image)
+	image의 채널, 가로, 세로 크기를 설정과 맞게끔 변경함.
+	이후 mean값을 통해서 rgb에 각각 값을 뺌... 그리고 transpose
+	아마 width*height*channel -> channel*width*height로 바꾸는 것 같음.
+
+	estimate(self, curr_search_region, target_region)
+	각각의 region(image 타입)을 preprocess해서 형태를 맞추고,
+	네트워크에 각각 넣어줌.
+	그리고 forward해서 결과를 내고
+	측정 결과는 fc8의 결과로 가져옴,
+
+	regress(self, curr_search_region, target_region)
+	estimate와 동일함!
+
+
+[tracker]
+
+	[멤버 변수]
+	
+	image_prev
+	bbox_prev_tight
+	bbox_curr_prior_tight
+
+	[멤버 함수]	
+	__init__(self, objRegressor)
+	regressor에 np.zeros()를 통해 50,50,3짜리 이미지(zero filled)를 넣어줌.
+	
+
+	init(self, image_curr, bbox_gt, objRegressor)
+	self.image_prev = image_curr
+	self.bbox_prev_tight = bbox_gt
+	self.bbox_curr_prior_tight = bbox_gt
+	설명상 가장 처음에 bbox를 그릴때 말하는 것 같음. 사용자가 입력한 bbox를 입력하고, 현재 frame을 저장하는...
+	이를 통해 추후에 tracking이 가능하니까!
+
+	
+	track(self, image_curr, objRegressor)
+	cropPadImage(self.bbox_prev_tight, self.image_prev)를 실행함.
+	대충 이미지를 자르고 이전꺼랑 비교하는 내용인듯.
+	여기서 regressor를 호출함!
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+	
+		

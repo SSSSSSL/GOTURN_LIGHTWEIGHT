@@ -1,0 +1,13 @@
+net:'/home/rgblab/tracking/GOTURN_LIGHTWEIGHT/model/mobile/mobileTracker_train.prototxt'
+base_lr: 0.000001
+lr_policy: "step"
+gamma: 0.1
+stepsize: 100000
+display: 20
+max_iter: 15000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 5000
+snapshot_prefix: "./mobileDump_model" # change as per your need
+device_id: 1
+solver_mode: GPU
